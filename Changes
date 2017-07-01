@@ -1,0 +1,7 @@
+History for Dist-Zilla-Plugin-AuthorsFromGit
+
+
+0.001 2017-07-01
+
+  * Initial version that shows some functionality. Treat carefully.
+    Badly needs documentation.
