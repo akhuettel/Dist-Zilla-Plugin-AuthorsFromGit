@@ -1,6 +1,10 @@
 package Dist::Zilla::Plugin::AuthorsFromGit;
 # ABSTRACT: Add per-file per-year copyright info to each Perl document
 
+use Git::Wrapper;
+use DateTime;
+use List::MoreUtils qw(uniq sort_by);
+
 use Moose;
 with(
   'Dist::Zilla::Role::FileMunger',
@@ -18,23 +22,83 @@ use namespace::autoclean;
 #pod =cut
 
 sub gitauthorlist {
-  return ( "   a", "   b", "   c" );
+  my ($file, $git)= @_;
+
+  my @log_lines = $git->RUN('log', '--format=%H %at %aN', '--', $file->name);
+  my @outputlines;
+
+  if (@log_lines) {
+
+    my $earliest_year=3000;
+    my $latest_year=0;
+    my %authordata;
+    my %authorline;
+
+    # Extract the author data and separate by year
+    foreach ( @log_lines ) {
+
+      my @fields=split(/ /,$_,3);
+      my $when=DateTime->from_epoch(epoch => $fields[1]);
+      my $year=$when->year();
+      my $author=$fields[2];
+
+      if ($year < $earliest_year) { $earliest_year=$year; };
+      if ($year > $latest_year) { $latest_year=$year; };
+      if ( $author ne "unknown" ) { push(@{$authordata{$year}}, $author); };
+    };
+
+    # Remove duplicates within a year, sort and transform to string
+    foreach my $year (keys %authordata) {
+
+      my @un=uniq(@{$authordata{$year}});
+      $authorline{$year}=join(', ',sort_by { $_ } @un);
+
+    };
+
+    # Now deduplicate the years
+    push @outputlines, "  Copyright $earliest_year       ".$authorline{$earliest_year};
+
+    for ( my $year=$earliest_year+1; $year<=$latest_year; $year++) {
+
+    if ( (defined $authorline{$year}) && (defined $authorline{$year-1}) ) {
+
+      if ($authorline{$year-1} eq $authorline{$year}) {
+
+        my $lastline=$outputlines[-1];
+          $lastline=~ s/([0-9]{4})[\- ][0-9 ]{4}/$1-$year/;
+          $outputlines[-1]=$lastline;
+        } else {
+          push @outputlines, "            $year       ".$authorline{$year};
+        };
+
+      } elsif ( defined $authorline{$year} ) {
+
+        push @outputlines, "            $year       ".$authorline{$year};
+
+      };
+    };
+  };
+
+  return @outputlines;
 }
 
 sub munge_files {
   my ($self) = @_;
+  my $git = Git::Wrapper->new(".");
 
-  $self->munge_file($_) for @{ $self->found_files };
+  $self->munge_file($_, $git) for @{ $self->found_files };
 }
 
 sub munge_file {
-  my ($self, $file) = @_;
+  my ($self, $file, $git) = @_;
 
-  return $self->munge_pod($file);
+  my @gal=gitauthorlist($file,$git);
+
+  return $self->munge_pod($file, @gal);
 }
 
 sub munge_pod {
-  my ($self, $file) = @_;
+  my ($self, $file, @gal) = @_;
 
   my @content = split /\n/, $file->content;
 
@@ -58,14 +122,8 @@ sub munge_pod {
     if ($content[$_] =~ /^This software is copyright.*, see the git log\.$/ ) {    
     
       $content[$_] =~ s/, see the git log\.$/./;
-      splice @content, $_+1, 0, gitauthorlist($file);
+      splice @content, $_+1, 0, @gal;
     
-    } else {
-      $self->log([
-        "couldn't find ', see the git log.' in %s, not modifying",
-        $file->name,
-      ]);
-      print " line is \'$content[$_]\'\n";
     };
 
     my $content = join "\n", @content;
@@ -75,10 +133,6 @@ sub munge_pod {
 
   }
 
-  $self->log([
-    "couldn't find '=head1 COPYRIGHT AND LICENSE' in %s, not modifying",
-    $file->name,
-  ]);
 }
 
 __PACKAGE__->meta->make_immutable;
