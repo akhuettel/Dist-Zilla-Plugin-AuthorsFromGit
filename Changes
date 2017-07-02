@@ -1,5 +1,9 @@
 History for Dist-Zilla-Plugin-AuthorsFromGit
 
+0.002 2017-07-02
+
+  * Fix a POD formatting bug
+  * Add documentation
 
 0.001 2017-07-01
 
