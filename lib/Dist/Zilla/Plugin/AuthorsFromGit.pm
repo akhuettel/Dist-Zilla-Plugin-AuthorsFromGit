@@ -100,7 +100,7 @@ There's something fishy with unicode.
 sub gitauthorlist {
   my ($file, $git)= @_;
 
-  my @log_lines = $git->RUN('log', '--format=%H %at %aN', '--', $file->name);
+  my @log_lines = $git->RUN('log', '--follow', '--format=%H %at %aN', '--', $file->name);
   my @outputlines;
   push @outputlines, "";
 
