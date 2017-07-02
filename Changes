@@ -1,5 +1,10 @@
 History for Dist-Zilla-Plugin-AuthorsFromGit
 
+0.003 2017-07-03
+
+  * Let "git log" follow across file renames
+  * Add github metadata
+
 0.002 2017-07-02
 
   * Fix a POD formatting bug
