@@ -26,6 +26,7 @@ sub gitauthorlist {
 
   my @log_lines = $git->RUN('log', '--format=%H %at %aN', '--', $file->name);
   my @outputlines;
+  push @outputlines, "";
 
   if (@log_lines) {
 
@@ -77,6 +78,7 @@ sub gitauthorlist {
 
       };
     };
+    push @outputlines, "";
   };
 
   return @outputlines;
@@ -116,12 +118,12 @@ sub munge_pod {
     # "This software is copyright ... , see the git log."
     #
     # The string ", see the git log." is used as magic to trigger the plugin.
-    # We check this format, replace ", see the git log." with ".", 
+    # We check this format, replace ", see the git log.",
     # and insert the git information afterwards.
     
     if ($content[$_] =~ /^This software is copyright.*, see the git log\.$/ ) {    
     
-      $content[$_] =~ s/, see the git log\.$/./;
+      $content[$_] =~ s/, see the git log\.$/; in detail:/;
       splice @content, $_+1, 0, @gal;
     
     };
