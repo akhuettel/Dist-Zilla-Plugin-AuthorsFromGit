@@ -15,11 +15,87 @@ with(
 
 use namespace::autoclean;
 
-#pod =head1 DESCRIPTION
-#pod
-#pod This plugin ...
-#pod
-#pod =cut
+=head1 SYNOPSIS
+
+In dist.ini, set
+
+  copyright_holder = the Foo-Bar team, see the git log
+  ; [...]
+  [PodWeaver]
+  [AuthorsFromGit]
+
+In weaver.ini, set
+
+  [@NoAuthor]
+
+Then a copyright section in each module is created as follows:
+
+  COPYRIGHT AND LICENSE
+
+  This software is copyright (c) 2017 by the Foo-Bar team; in detail:
+
+  Copyright 2014-2015  A. N. Author
+            2016       A. N. Author, O. Th. Erautor
+            2017       O. Th. Erautor
+
+with names and years extracted from the Git commit log of the specific module.
+
+=head1 DESCRIPTION
+
+This Dist::Zilla plugin is intended for large Perl distributions that have been
+existing for some time, where maintainership has changed over the years, and
+where different people have contributed to different parts of the code. It
+provides a means to acknowledge the contribution of different people to
+different modules, where it is not possible to resonably list them all in the
+authors field of the entire distribution.
+
+This is also to reflect that, independent of the chosen license terms, anyone
+who contributes nontrivial code to an open source package retains copyright of
+the contribution. Some legislatures (e.g. Germany) even provide no way of
+"transferring" copyright, since it is always bound to the natural person who
+conceived the code.
+
+=head1 USAGE
+
+Here, the usage in conjunction with the PodWeaver plugin is described. It should
+be possible to use this module without it, but I haven't tested that yet. We
+also assume that your working directory is a Git clone.
+
+Assuming your distribution is called Foo-Bar, in dist.ini, then set
+
+  copyright_holder = the Foo-Bar team, see the git log
+  ; [...]
+  [PodWeaver]
+  [AuthorsFromGit]
+
+The precise string ", see the git log" at the end of the copyright_holder line
+is important since it triggers this plugin.
+
+In case you do not have a weaver.ini yet, create one with the content
+
+  [@NoAuthor]
+
+This is identical to the default plugin bundle of Pod-Weaver, just that it will
+not create a separate AUTHORS section. In case you already have a weaver.ini, 
+make sure it does not generate any AUTHORS section.
+
+During the build process, Dist::Zilla will then run "git log" for each processed
+module and extract the list of authors of the module for each year. Then a 
+copyright section in the POD of each module is created as follows:
+
+  COPYRIGHT AND LICENSE
+
+  This software is copyright (c) 2017 by the Foo::Bar team; in detail:
+
+  Copyright 2014-2015  A. N. Author
+            2016       A. N. Author, O. Th. Erautor
+            2017       O. Th. Erautor
+
+=head1 KNOWN BUGS
+
+There's something fishy with unicode.
+
+=cut
 
 sub gitauthorlist {
   my ($file, $git)= @_;
@@ -143,6 +219,8 @@ __PACKAGE__->meta->make_immutable;
 #pod =head1 SEE ALSO
 #pod
 #pod L<PkgVersion|Dist::Zilla::Plugin::PodVersion>,
+#pod L<PkgVersion|Git::Wrapper>,
+#pod L<PkgVersion|Lab::Measurement> for an application example
 #pod
 #pod =cut
 
