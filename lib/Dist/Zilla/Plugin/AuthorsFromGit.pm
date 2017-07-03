@@ -3,7 +3,7 @@ package Dist::Zilla::Plugin::AuthorsFromGit;
 
 use Git::Wrapper;
 use DateTime;
-use List::MoreUtils qw(uniq sort_by);
+use List::MoreUtils 0.4 qw(uniq sort_by);
 
 use Moose;
 with(
