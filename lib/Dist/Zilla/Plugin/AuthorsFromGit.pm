@@ -162,6 +162,9 @@ sub gitauthorlist {
 
 sub munge_files {
   my ($self) = @_;
+  my $myv="git";
+  if ( defined $Dist::Zilla::Plugin::AuthorsFromGit::VERSION ) { $myv=$Dist::Zilla::Plugin::AuthorsFromGit::VERSION; };
+  $self->log([ 'extracting Git commit information, plugin version %s', $myv ]);
   my $git = Git::Wrapper->new(".");
 
   $self->munge_file($_, $git) for @{ $self->found_files };
