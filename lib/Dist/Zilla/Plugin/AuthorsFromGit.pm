@@ -3,7 +3,7 @@ package Dist::Zilla::Plugin::AuthorsFromGit;
 
 use Git::Wrapper;
 use DateTime;
-use List::MoreUtils 0.4 qw(uniq sort_by);
+use List::MoreUtils 0.4 qw(uniq sort_by true);
 
 use Moose;
 with(
@@ -91,11 +91,32 @@ copyright section in the POD of each module is created as follows:
             2016       A. N. Author, O. Th. Erautor
             2017       O. Th. Erautor
 
+=head1 CONFIGURATION
+
+Not much.
+
+=head2 Excluding commits
+
+In case you want to skip some commits which contain trivial, not
+copyright-relevant changes ("increase version number", "perltidy"), create
+a text file named .copyright-exclude in the main distribution directory. It
+should contain exactly one git commit hash per line, nothing else.
+
+Use with care, and only add your own commits!
+
 =head1 KNOWN BUGS
 
 There's something fishy with unicode.
 
 =cut
+
+sub getblacklist {
+  open ( my $lf, '<', '.copyright-exclude' ) or return ( );
+  my @lines=<$lf>;
+  chomp @lines;
+  return @lines;
+};
+
 
 sub gitauthorlist {
   my ($file, $git)= @_;
@@ -111,13 +132,20 @@ sub gitauthorlist {
     my %authordata;
     my %authorline;
 
+    # Get the commit blacklist to ignore
+    my @blacklist=getblacklist();
+
     # Extract the author data and separate by year
     foreach ( @log_lines ) {
 
       my @fields=split(/ /,$_,3);
+      my $commit=$fields[0];
       my $when=DateTime->from_epoch(epoch => $fields[1]);
       my $year=$when->year();
       my $author=$fields[2];
+
+      my $count = true { /$commit/ } @blacklist;
+      if ( $count >= 1 ) { next; };
 
       if ($year < $earliest_year) { $earliest_year=$year; };
       if ($year > $latest_year) { $latest_year=$year; };
