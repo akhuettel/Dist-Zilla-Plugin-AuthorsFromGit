@@ -1,5 +1,9 @@
 History for Dist-Zilla-Plugin-AuthorsFromGit
 
+0.005 2017-07-04
+
+  * Add commit blacklisting
+
 0.004 2017-07-03
 
   * Add a log message with the plugin version
