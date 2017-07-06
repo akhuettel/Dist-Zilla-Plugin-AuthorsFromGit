@@ -121,7 +121,7 @@ sub getblacklist {
 sub gitauthorlist {
   my ($file, $git)= @_;
 
-  my @log_lines = $git->RUN('log', '--follow', '--format=%H %at %aN', '--', $file->name);
+  my @log_lines = $git->RUN('log', '--follow', '-M75%', '--format=%H %at %aN', '--', $file->name);
   my @outputlines;
   push @outputlines, "";
 
