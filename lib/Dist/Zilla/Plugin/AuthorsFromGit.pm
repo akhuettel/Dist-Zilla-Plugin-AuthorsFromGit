@@ -160,8 +160,10 @@ sub gitauthorlist {
 
     };
 
-    # Now deduplicate the years
-    push @outputlines, "  Copyright $earliest_year       ".$authorline{$earliest_year};
+    if (defined $earliest_year && exists $authorline{$earliest_year}) {
+       # Now deduplicate the years
+       push @outputlines, "  Copyright $earliest_year       ".$authorline{$earliest_year};
+    }
 
     for ( my $year=$earliest_year+1; $year<=$latest_year; $year++) {
 
