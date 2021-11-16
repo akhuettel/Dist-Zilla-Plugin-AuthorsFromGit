@@ -121,6 +121,10 @@ sub getblacklist {
 sub gitauthorlist {
   my ($file, $git)= @_;
 
+  # Switching the warning off when the code works nicely is safer than rewriting
+  # the logic to suppress a harmless warning.
+  no warnings 'uninitialized';
+
   my @log_lines = $git->RUN('log', '--follow', '-M75%', '--format=%H %at %aN', '--', $file->name);
   my @outputlines;
   push @outputlines, "";
@@ -184,6 +188,8 @@ sub gitauthorlist {
     };
     push @outputlines, "";
   };
+
+  use warnings 'uninitialized';
 
   return @outputlines;
 }
